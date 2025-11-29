@@ -1,1 +1,1 @@
-include models/*.json
+recursive-include src/ravens_route/models *.json

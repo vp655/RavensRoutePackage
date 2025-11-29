@@ -1,6 +1,6 @@
 [project]
 name = "ravens-route"
-version = "0.1.0"
+version = "0.1.1"
 description = "Route-level catch probability model for NFL tracking data."
 authors = [
     {name = "Vir Pandit", email = "vir.pandit1@gmail.com"}
@@ -16,3 +16,7 @@ dependencies = [
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
