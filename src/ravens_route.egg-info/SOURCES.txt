@@ -2,6 +2,7 @@ MANIFEST.in
 README.md
 pyproject.toml
 src/ravens_route/__init__.py
+src/ravens_route/animation.py
 src/ravens_route/inference.py
 src/ravens_route/models_io.py
 src/ravens_route.egg-info/PKG-INFO

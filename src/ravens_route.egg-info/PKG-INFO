@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: ravens-route
-Version: 0.1.1
+Version: 0.1.2
 Summary: Route-level catch probability model for NFL tracking data.
 Author-email: Vir Pandit <vir.pandit1@gmail.com>
 Requires-Python: >=3.8
@@ -8,6 +8,8 @@ Description-Content-Type: text/markdown
 Requires-Dist: pandas
 Requires-Dist: numpy
 Requires-Dist: xgboost
+Requires-Dist: matplotlib
+Requires-Dist: pillow
 
 # ravens-route
 
