@@ -1,29 +1,27 @@
-# src/ravens_route/models_io.py
-
 from pathlib import Path
 import json
 from typing import List, Optional, Dict
 
 import xgboost as xgb
 
-# __file__ = .../ravens_route/src/ravens_route/models_io.py
-# parents[0] = .../ravens_route/src/ravens_route
-# parents[1] = .../ravens_route/src
-# parents[2] = .../ravens_route   <-- project root (where models/ lives)
-PACKAGE_ROOT = Path(__file__).resolve().parents[2]
-MODELS_DIR = PACKAGE_ROOT / "models"
+PACKAGE_DIR = Path(__file__).resolve().parent
 
-# Cached globals so we only load once
-_route_model: Optional[xgb.Booster] = None          # <-- Booster now
+models_dir = PACKAGE_DIR / "models"
+
+if not models_dir.exists():
+    repo_root = PACKAGE_DIR.parent.parent
+    alt = repo_root / "models"
+    if alt.exists():
+        models_dir = alt
+
+MODELS_DIR = models_dir
+
+_route_model: Optional[xgb.Booster] = None
 _route_features: Optional[List[str]] = None
 _route_encoder: Optional[Dict[str, int]] = None
 
 
 def get_route_features() -> List[str]:
-    """
-    Return the list of feature names that the route model expects.
-    Loaded once from models/route_features.json.
-    """
     global _route_features
 
     if _route_features is None:
@@ -41,10 +39,6 @@ def get_route_features() -> List[str]:
 
 
 def get_route_encoder() -> Dict[str, int]:
-    """
-    Return mapping from route string -> encoded integer used in training.
-    Loaded once from models/route_label_mapping.json.
-    """
     global _route_encoder
 
     if _route_encoder is None:
@@ -62,11 +56,6 @@ def get_route_encoder() -> Dict[str, int]:
 
 
 def get_route_model() -> xgb.Booster:
-    """
-    Return the trained XGBoost route model as a raw Booster.
-
-    Loaded once from models/route_model.json using the native XGBoost API.
-    """
     global _route_model
 
     if _route_model is None:
