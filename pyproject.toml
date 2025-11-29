@@ -1,0 +1,18 @@
+[project]
+name = "ravens-route"
+version = "0.1.0"
+description = "Route-level catch probability model for NFL tracking data."
+authors = [
+    {name = "Vir Pandit", email = "vir.pandit1@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pandas",
+    "numpy",
+    "xgboost"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
