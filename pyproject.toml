@@ -1,6 +1,6 @@
 [project]
 name = "ravens-route"
-version = "0.1.2"
+version = "0.1.3"
 description = "Route-level catch probability model for NFL tracking data."
 authors = [
     { name = "Vir Pandit", email = "vir.pandit1@gmail.com" }
