@@ -7,52 +7,67 @@ A lightweight, production-ready Python package for evaluating wide receiver rout
 ## Installation
 
 Install directly from GitHub via HTTPS:
+
 pip install git+https://github.com/vp655/RavensRoutePackage.git
 
-Or via SSH (if your SSH keys are configured with GitHub):
-pip install git+ssh://git@github.com/vp655/RavensRoutePackage.git
+If in a jupyter notebook the command is:
+
+!pip install git+https://github.com/vp655/RavensRoutePackage.git
+
 
 This installs the package `ravens-route` (imported as `ravens_route` in Python) and all required dependencies.
 
+## Data Required 
+
+Download `final_matchup_data.csv` from the data folder in the Github repository. 
+
+Then, visit https://www.kaggle.com/competitions/nfl-big-data-bowl-2021/data and sign in to the competition. Download all the data, 
+and save it in a folder called data_dir in the same workspace you are currently in. 
+
 ## Predict Catch Probability
 
-Example usage, assuming you have a `final_matchup_data.csv` built with the same feature engineering pipeline used to train the model:
+
+```python
 
 import pandas as pd
 from ravens_route import predict_route_prob
 
 df = pd.read_csv("final_matchup_data.csv")
-row = df.iloc[0]  # single play / matchup row
+row = df.iloc[0]  
 
 prob = predict_route_prob(row)
 print("Catch Probability:", prob)
+
+```
 
 The function handles:
 - Loading the pretrained XGBoost Booster.
 - Loading the expected feature list.
 - Loading the saved route label mapping.
-- Encoding the route value (if given as a string).
-- Selecting and ordering features correctly.
-- Converting values to float32.
+- Encoding the route value.
 - Running the Booster’s predict() method and returning a float in [0, 1].
 
-## Optional: Generate a Play Animation
+
+## Generate a Play Animation
 
 If you are using the animation utilities to visualize a given play:
+
+```python
 
 from ravens_route import animate_play_from_row
 import pandas as pd
 
 df = pd.read_csv("final_matchup_data.csv")
-row = df.iloc[3]
+row = df.iloc[0]
 
 anim = animate_play_from_row(
     row=row,
-    data_dir="data_dir",              # folder containing tracking CSVs
+    data_dir="data_dir",              # folder containing tracking CSVs from 2021 Big Data Bowl 
     out_gif="animations/example.gif", # output GIF path
     fps=10,
     show=True
 )
+```
 
 This will:
 - Load the corresponding tracking data from data_dir.
@@ -62,8 +77,7 @@ This will:
 
 # Package Contents
 
-After installation, the package is available under your Python 3.11 site-packages directory, for example:
-C:\Users\light\AppData\Local\Programs\Python\Python311\Lib\site-packages\ravens_route\
+After installation, the package is available under your Python 3.11 site-packages directory, for example
 
 The structure looks like:
 
@@ -71,36 +85,19 @@ ravens_route/
     __init__.py
     inference.py
     models_io.py
+    animation.py  
     models/
         route_model.json
         route_features.json
         route_label_mapping.json
-    animation.py               # if included
-    __pycache__/               # Python bytecode cache (ignored by git)
+               
 
 - route_model.json: XGBoost Booster model (trained route-level catch probability model).
 - route_features.json: Ordered list of feature names used by the model.
 - route_label_mapping.json: Mapping from route string (e.g. "GO", "SLANT", "WHEEL") to integer codes.
 
-# How Prediction Works Internally
 
-When you call predict_route_prob(row), the package does the following:
-
-1. Uses models_io.get_route_model() to load a cached XGBoost Booster from ravens_route/models/route_model.json.
-2. Uses models_io.get_route_features() to load the list of expected feature names.
-3. Uses models_io.get_route_encoder() to load the route label mapping from route_label_mapping.json.
-4. If row["route"] is a string, it encodes it into the correct integer code using the saved mapping (with a fallback for "undefined" if needed).
-5. Subsets the row to exactly the features listed in route_features.json, in that exact order.
-6. Converts all feature values to float32, raising a clear error if any NaNs appear.
-7. Wraps the feature array in an xgboost.DMatrix and feeds it to the Booster.
-8. Returns the scalar probability for the positive class (catch) as a Python float.
-
-This design ensures:
-- The same predictions across different machines.
-- The same behavior between your development notebooks and the installed package.
-- No dependency on ad-hoc notebook state or external preprocessing code.
-
-# Dependency Versions
+# IMPORTANT: Dependency Versions
 
 The package has been tested with and currently depends on the following versions (as reported by pip in the environment):
 
@@ -140,7 +137,7 @@ Symptoms:
 - Backend-related errors when calling animate_play_from_row.
 
 Cause:
-Often due to matplotlib version or backend issues.
+Often due to matplotlib version or backend issues. Package not compatible with matplotlib versions >= 3.9.
 
 Fix:
 The package has been tested with matplotlib==3.8.2 and pillow==10.1.0. To enforce these versions, run:
@@ -179,47 +176,8 @@ Use Python 3.11 or Python 3.12 for this project. For example:
 - On Windows: install Python 3.11 or 3.12 from python.org.
 - On macOS/Linux: use pyenv, conda, or your package manager to create an environment with Python 3.11 or 3.12.
 
-4) FileNotFoundError for route_model.json or feature JSON
-
-Symptoms:
-FileNotFoundError mentioning route_model.json, route_features.json, or route_label_mapping.json, usually with a path that does not contain models/.
-
-Cause:
-The models/ directory was not shipped with the installed package (e.g., incorrect packaging configuration), or the code is being run from a dev layout that doesn’t match the installed layout.
-
-Fix (already handled in this package version, but for reference):
-- Ensure the JSON files live inside src/ravens_route/models/ in the source repo.
-- Ensure MANIFEST.in includes:
-  recursive-include src/ravens_route/models *.json
-- Ensure pyproject.toml includes:
-  [tool.setuptools]
-  include-package-data = true
-
-In the installed environment, you can verify that the files exist with:
-import ravens_route, pathlib
-print(list((pathlib.Path(ravens_route.__file__).parent / "models").iterdir()))
-
-5) Prediction Mismatch vs Old Notebook
-
-Symptoms:
-The probability from predict_route_prob(row) differs slightly from values computed in older notebooks.
-
-Causes:
-- The notebook used an XGBClassifier rather than the Booster.
-- The notebook used a different feature subset or ordering.
-- The notebook had different route encoding or preprocessing logic for some columns.
-
-Why the package is authoritative:
-- It always uses the saved Booster model from route_model.json.
-- It always uses the saved feature ordering from route_features.json.
-- It always uses the saved route label mapping from route_label_mapping.json.
-As a result, if there is a mismatch, the package behavior should be taken as the canonical source of truth, and any notebook should be updated to mimic the package’s internal steps if exact reproduction is required.
-
-# License
-
-Insert your chosen license text here (e.g., MIT, BSD-3-Clause, or Apache-2.0), depending on how you intend others to use, modify, and distribute this package.
 
 # Contact
 
 For internal questions, extensions, or integration into other workflows, please contact:
-Virochan Pandit
+Vir Pandit (vir.pandit1@gmail.com)
